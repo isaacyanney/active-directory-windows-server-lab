@@ -1,0 +1,5 @@
+SamAccountName,GivenName,Surname,Department,Title,OU,ManagerSam,Enabled
+a.boateng,Amina,Boateng,Finance,Finance Analyst,"OU=Finance,OU=Users,DC=corp,DC=example",m.klein,true
+j.weber,Jonas,Weber,Operations,Operations Coordinator,"OU=Operations,OU=Users,DC=corp,DC=example",l.hoffmann,true
+l.fischer,Leon,Fischer,IT,Support Technician,"OU=IT,OU=Users,DC=corp,DC=example",i.admin,true
+m.owusu,Maya,Owusu,People,People Coordinator,"OU=People,OU=Users,DC=corp,DC=example",s.becker,false
