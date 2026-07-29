@@ -1,5 +1,7 @@
 # Windows Server & Active Directory Administration Lab
 
+[![PowerShell syntax validation](https://github.com/isaacyanney/active-directory-windows-server-lab/actions/workflows/powershell-syntax.yml/badge.svg)](https://github.com/isaacyanney/active-directory-windows-server-lab/actions/workflows/powershell-syntax.yml)
+
 A reproducible lab design for core junior-system-administration work: directory structure, DNS-aware domain topology, Group Policy, role-based access, safe user provisioning and evidence-based troubleshooting.
 
 ## Evidence boundary
