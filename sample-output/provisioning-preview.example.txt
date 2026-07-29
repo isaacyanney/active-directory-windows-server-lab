@@ -1,0 +1,11 @@
+SYNTHETIC EXAMPLE — NOT CAPTURED FROM A LIVE DOMAIN
+
+What if: Performing the operation "Create lab AD user" on target "amina.mensah@corp.example".
+What if: Performing the operation "Create lab AD user" on target "luka.weber@corp.example".
+
+Review result:
+- Input records: 2
+- Existing-account check: passed
+- Target OU check: passed
+- Plaintext password stored: no
+- Changes executed: no (-WhatIf preview)
