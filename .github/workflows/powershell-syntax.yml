@@ -1,22 +1,70 @@
-name: PowerShell syntax validation
+name: PowerShell validation and Pester tests
+
 on:
   push:
-    paths: ["**/*.ps1", ".github/workflows/powershell-syntax.yml"]
+    paths:
+      - "**/*.ps1"
+      - ".github/workflows/powershell-syntax.yml"
   pull_request:
-    paths: ["**/*.ps1", ".github/workflows/powershell-syntax.yml"]
+    paths:
+      - "**/*.ps1"
+      - ".github/workflows/powershell-syntax.yml"
+
 permissions:
   contents: read
+
 jobs:
-  syntax:
+  validate:
     runs-on: windows-latest
+    timeout-minutes: 10
+
     steps:
-      - uses: actions/checkout@v4
-      - shell: pwsh
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Parse PowerShell files
+        shell: pwsh
         run: |
-          $failed=$false
-          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {
-            $t=$null; $e=$null
-            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName,[ref]$t,[ref]$e)|Out-Null
-            if($e.Count){$failed=$true;$e|ForEach-Object{Write-Error $_.Message}}
+          $failed = $false
+
+          Get-ChildItem -Path . -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              $_.FullName,
+              [ref]$tokens,
+              [ref]$errors
+            ) | Out-Null
+
+            if ($errors.Count -gt 0) {
+              $failed = $true
+              Write-Error "Syntax errors in $($_.FullName)"
+              $errors | ForEach-Object { Write-Error $_.Message }
+            }
+            else {
+              Write-Host "Syntax OK: $($_.FullName)"
+            }
           }
-          if($failed){exit 1}
+
+          if ($failed) {
+            exit 1
+          }
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module Pester -MinimumVersion 5.5.0 -Scope CurrentUser -Force
+
+      - name: Run Pester tests
+        shell: pwsh
+        run: |
+          $configuration = New-PesterConfiguration
+          $configuration.Run.Path = "tests"
+          $configuration.Run.PassThru = $true
+          $configuration.Output.Verbosity = "Detailed"
+          $result = Invoke-Pester -Configuration $configuration
+
+          if ($result.FailedCount -gt 0) {
+            exit 1
+          }
