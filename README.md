@@ -57,14 +57,18 @@ Remove `-WhatIf` only after the OU paths, naming standard, approvals and test en
 
 ## Automated validation
 
-GitHub Actions parses every PowerShell file and runs Pester tests that verify the provisioning script:
+GitHub Actions parses every PowerShell file, runs Pester tests and checks that the synthetic CSV and `-WhatIf` preview remain consistent. The checks verify that the provisioning script:
 
 - has valid syntax;
 - declares `ShouldProcess` support;
 - accepts the initial password as a `SecureString`;
 - supports safe `-WhatIf` preview;
 - checks existing accounts and target OUs;
-- keeps user creation inside the controlled change path.
+- keeps user creation inside the controlled change path;
+- uses only the documented example domain and aligned synthetic preview identities;
+- states clearly that the published preview executed no changes.
+
+**Current evidence status:** public source, safety-oriented tests, synthetic input data, aligned `-WhatIf` output and automated validation are available for review. Live-domain execution, screenshots and production administration are intentionally not claimed.
 
 ## Intended lab sequence
 
