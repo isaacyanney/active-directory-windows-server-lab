@@ -4,10 +4,14 @@ on:
   push:
     paths:
       - "**/*.ps1"
+      - "data/**/*.csv"
+      - "sample-output/**/*.txt"
       - ".github/workflows/powershell-syntax.yml"
   pull_request:
     paths:
       - "**/*.ps1"
+      - "data/**/*.csv"
+      - "sample-output/**/*.txt"
       - ".github/workflows/powershell-syntax.yml"
 
 permissions:
@@ -68,3 +72,35 @@ jobs:
           if ($result.FailedCount -gt 0) {
             exit 1
           }
+
+      - name: Validate synthetic provisioning evidence
+        shell: pwsh
+        run: |
+          $required = @("SamAccountName","GivenName","Surname","Department","Title","OU","ManagerSam","Enabled")
+          $rows = @(Import-Csv "data/users.csv")
+          if ($rows.Count -eq 0) { throw "Synthetic user dataset is empty." }
+
+          $missing = @($required | Where-Object { $_ -notin $rows[0].PSObject.Properties.Name })
+          if ($missing.Count -gt 0) { throw "CSV missing columns: $($missing -join ', ')" }
+
+          foreach ($row in $rows) {
+            if ($row.SamAccountName -notmatch "^[a-z0-9._-]+$") {
+              throw "Invalid synthetic account name: $($row.SamAccountName)"
+            }
+            if ($row.OU -notlike "*DC=corp,DC=example") {
+              throw "Non-example directory path detected: $($row.OU)"
+            }
+          }
+
+          $preview = Get-Content -Raw "sample-output/provisioning-preview.example.txt"
+          if ($preview -notmatch "SYNTHETIC EXAMPLE") { throw "Preview is missing its synthetic-data notice." }
+          if ($preview -notmatch "Changes executed: no") { throw "Preview must state that no changes were executed." }
+
+          foreach ($account in @($rows | Select-Object -First 2)) {
+            $upn = "$($account.SamAccountName)@corp.example"
+            if ($preview -notmatch [regex]::Escape($upn)) {
+              throw "Preview does not match the synthetic CSV account: $upn"
+            }
+          }
+
+          Write-Host "Synthetic CSV and WhatIf preview evidence are consistent."
